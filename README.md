@@ -1,93 +1,149 @@
-# Analisis-Olist
+# Olist — Inteligencia estratégica y optimización logística de marketplace
 
+> **Análisis integral del dataset de Olist (marketplace brasileño, +100.000 pedidos) para optimizar la conversión de leads a sellers, segmentar vendedores por Lifetime Value y cuantificar el impacto de la geografía en la logística.**
 
+![Status](https://img.shields.io/badge/status-en%20progreso-yellow)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Problema de negocio
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Olist es el marketplace más grande de Brasil. Como cualquier marketplace, su negocio depende de tres palancas: (1) traer sellers y convertirlos en cuentas activas, (2) que esos sellers vendan mucho y con buena reputación, (3) que la logística no destruya la experiencia del cliente. Este proyecto ataca las tres.
 
-## Add your files
+**Preguntas concretas que responde:**
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+1. **Lead scoring** — De cada 100 leads que llegan al equipo comercial, ¿cuáles vale la pena perseguir porque van a facturar mucho?
+2. **Segmentación de sellers** — En vez de tratar a los +3.000 sellers como un bloque, ¿en qué grupos naturales se dividen? ¿Qué recomendación aplica a cada grupo?
+3. **Impacto de la geografía en la logística** — ¿Cuánto se encarece el flete y cuánto baja el review score por cada 100 km entre vendedor y comprador? ¿Dónde conviene abrir un nuevo depósito?
+
+---
+
+## Dataset
+
+[Olist Brazilian E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) — 9 tablas relacionales, 100k pedidos, 3k sellers, 96k customers únicos, período 2016-2018. Se complementa con el [Marketing Funnel Dataset](https://www.kaggle.com/datasets/olistbr/marketing-funnel-olist) que aporta MQLs y closed deals para el análisis de conversión.
+
+![Modelo de datos](reports/figures/data_model.png)
+
+---
+
+## Metodología
+
+| Fase | Técnica | Entregable |
+|------|---------|------------|
+| ETL | Consolidación de 9 tablas relacionales, limpieza, traducción de categorías PT→ES | Dataset unificado en `data/processed/` |
+| EDA | Estadística descriptiva, distribuciones, correlaciones, ECDF | `notebooks/01_eda.ipynb` |
+| Feature engineering geoespacial | Distancias Haversine entre zip codes seller-customer | Feature `distance_km` |
+| **Modelo 1 — Lead Scoring** | **XGBoost** clasificando MQL → seller de alto valor | `notebooks/02_lead_scoring.ipynb` + `models/xgb_lead_scoring.pkl` |
+| **Modelo 2 — Segmentación** | **PCA + K-Means** sobre features de comportamiento de sellers | `notebooks/03_seller_segmentation.ipynb` |
+| Interpretabilidad | SHAP values sobre XGBoost | `reports/figures/shap_*.png` |
+| Dashboard | Streamlit deployado en cloud | Link público (próximamente) |
+
+---
+
+## Resultados clave
+
+> _Sección en construcción. Se completa a medida que avanzan los notebooks 02 y 03._
+
+- [ ] AUC del modelo de lead scoring
+- [ ] Número óptimo de clusters de sellers e interpretación de cada perfil
+- [ ] Coeficiente de correlación distancia ↔ flete y distancia ↔ review score
+- [ ] Top 5 features más importantes según SHAP
+
+---
+
+## Estructura del repositorio
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/LeandroLocurcio/analisis-olist.git
-git branch -M main
-git push -uf origin main
+analisis-olist/
+├── data/                  # CSVs crudos (ignorados por git, se bajan con el script)
+├── notebooks/             # Jupyter notebooks narrados
+│   └── 01_eda.ipynb
+├── src/                   # Código Python reutilizable
+│   ├── __init__.py
+│   └── download_data.py
+├── reports/
+│   └── figures/           # PNGs para el README y para presentaciones
+├── models/                # Modelos entrenados serializados (.pkl)
+├── requirements.txt
+├── .gitignore
+└── README.md
 ```
 
-## Integrate with your tools
+---
 
-* [Set up project integrations](https://gitlab.com/LeandroLocurcio/analisis-olist/-/settings/integrations)
+## Setup
 
-## Collaborate with your team
+**Requisitos:** Python 3.10+, cuenta de Kaggle (gratis).
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+**1. Clonar el repo:**
 
-## Test and Deploy
+```bash
+git clone https://gitlab.com/LeandroLocurcio/analisis-olist.git
+cd analisis-olist
+```
 
-Use the built-in continuous integration in GitLab.
+**2. Crear entorno virtual e instalar dependencias:**
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+```bash
+python -m venv .venv
+source .venv/bin/activate       # Linux/Mac
+# .venv\Scripts\activate        # Windows
+pip install -r requirements.txt
+```
 
-***
+**3. Configurar credenciales de Kaggle:**
 
-# Editing this README
+- Entrá a [kaggle.com](https://www.kaggle.com) → tu perfil → **Account** → **Create New API Token**.
+- Descargás un archivo `kaggle.json`.
+- Movelo a `~/.kaggle/kaggle.json` y protegé permisos: `chmod 600 ~/.kaggle/kaggle.json`.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+**4. Descargar los datos:**
 
-## Suggestions for a good README
+```bash
+python src/download_data.py
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+**5. Abrir los notebooks:**
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+jupyter lab
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+---
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Stack técnico
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+- **Lenguaje:** Python 3.10+
+- **Manipulación de datos:** pandas, numpy
+- **Visualización:** matplotlib, seaborn, plotly
+- **Geoespacial:** geopandas, shapely, pyproj
+- **Machine Learning:** scikit-learn, XGBoost, SHAP
+- **Dashboard:** Streamlit (fase final)
+- **Cloud:** Google BigQuery (fase final, para queries analíticas contra warehouse)
+- **Versionado:** git + GitLab
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+---
 
 ## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+- [x] EDA exhaustivo del dataset (distribuciones, geografía, logística, reviews)
+- [x] Estructura del repositorio y setup reproducible
+- [ ] ETL consolidado con funciones reutilizables en `src/data.py`
+- [ ] Feature engineering geoespacial (distancias haversine)
+- [ ] Modelo XGBoost de lead scoring + SHAP
+- [ ] Segmentación de sellers con PCA + K-Means
+- [ ] Migración de queries clave a BigQuery
+- [ ] Dashboard Streamlit deployado en cloud
+- [ ] Dockerfile para reproducibilidad total (opcional)
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+---
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Autor
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+**Leandro Locurcio**
+📧 locurcioleandronahuel@gmail.com
+🔗 [GitLab](https://gitlab.com/LeandroLocurcio)
 
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Proyecto en desarrollo activo. Feedback y sugerencias bienvenidos.
