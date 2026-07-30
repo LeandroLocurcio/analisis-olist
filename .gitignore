@@ -2,6 +2,8 @@
 # Los CSVs son pesados y se bajan con scripts/download_data.py
 Datos/
 *.csv
+# Datasets procesados por src/data.py (se regeneran corriendo el ETL)
+data/processed/
 
 # === Python ===
 __pycache__/
