@@ -130,8 +130,8 @@ jupyter lab
 
 - [x] EDA exhaustivo del dataset (distribuciones, geografía, logística, reviews)
 - [x] Estructura del repositorio y setup reproducible
-- [ ] ETL consolidado con funciones reutilizables en `src/data.py`
-- [ ] Feature engineering geoespacial (distancias haversine)
+- [x] ETL consolidado con funciones reutilizables en `src/data.py`
+- [x] Feature engineering geoespacial (distancias haversine)
 - [ ] Modelo XGBoost de lead scoring + SHAP
 - [ ] Segmentación de sellers con PCA + K-Means
 - [ ] Migración de queries clave a BigQuery
