@@ -44,12 +44,12 @@ Olist es el marketplace más grande de Brasil. Como cualquier marketplace, su ne
 
 ## Resultados clave
 
-> _Sección en construcción. Se completa a medida que avanzan los notebooks 02 y 03._
+> _Sección completa con los notebooks 01, 02 y 03. Falta la migración a BigQuery y el dashboard._
 
 - [x] AUC del modelo de lead scoring: **0.719** (test; target = conversión de MQL a seller)
 - [x] Número óptimo de clusters de sellers: **K=4** — en riesgo (11%, review 1.93), pequeños y confiables (39%), power sellers (30%), nicho premium (19%)
 - [x] Coeficiente de correlación distancia ↔ flete: Pearson 0.39, Spearman 0.63
-- [ ] Coeficiente de correlación distancia ↔ review score
+- [x] Coeficiente de correlación distancia ↔ review score: Pearson -0.05, Spearman -0.06 (prácticamente nula)
 - [x] Top features según SHAP (lead scoring): `contact_month` > `lp_freq` > `origin` > `contact_dayofweek`
 
 ---
