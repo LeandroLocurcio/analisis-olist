@@ -44,7 +44,7 @@ Olist es el marketplace más grande de Brasil. Como cualquier marketplace, su ne
 
 ## Resultados clave
 
-> _Sección completa con los notebooks 01, 02 y 03. Falta la migración a BigQuery y el dashboard._
+> _Sección completa con los notebooks 01, 02 y 03, más las queries migradas a BigQuery (`sql/`). Falta el dashboard._
 
 - [x] AUC del modelo de lead scoring: **0.719** (test; target = conversión de MQL a seller)
 - [x] Número óptimo de clusters de sellers: **K=4** — en riesgo (11%, review 1.93), pequeños y confiables (39%), power sellers (30%), nicho premium (19%)
@@ -67,6 +67,7 @@ analisis-olist/
 ├── reports/
 │   └── figures/           # PNGs para el README y para presentaciones
 ├── models/                # Modelos entrenados serializados (.pkl)
+├── sql/                   # Queries clave migradas a BigQuery
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -135,7 +136,7 @@ jupyter lab
 - [x] Feature engineering geoespacial (distancias haversine)
 - [x] Modelo XGBoost de lead scoring + SHAP
 - [x] Segmentación de sellers con PCA + K-Means
-- [ ] Migración de queries clave a BigQuery
+- [x] Migración de queries clave a BigQuery
 - [ ] Dashboard Streamlit deployado en cloud
 - [ ] Dockerfile para reproducibilidad total (opcional)
 
