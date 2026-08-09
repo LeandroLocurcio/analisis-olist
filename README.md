@@ -46,10 +46,11 @@ Olist es el marketplace más grande de Brasil. Como cualquier marketplace, su ne
 
 > _Sección en construcción. Se completa a medida que avanzan los notebooks 02 y 03._
 
-- [ ] AUC del modelo de lead scoring
+- [x] AUC del modelo de lead scoring: **0.719** (test; target = conversión de MQL a seller)
 - [ ] Número óptimo de clusters de sellers e interpretación de cada perfil
-- [ ] Coeficiente de correlación distancia ↔ flete y distancia ↔ review score
-- [ ] Top 5 features más importantes según SHAP
+- [x] Coeficiente de correlación distancia ↔ flete: Pearson 0.39, Spearman 0.63
+- [ ] Coeficiente de correlación distancia ↔ review score
+- [x] Top features según SHAP (lead scoring): `contact_month` > `lp_freq` > `origin` > `contact_dayofweek`
 
 ---
 
@@ -132,7 +133,7 @@ jupyter lab
 - [x] Estructura del repositorio y setup reproducible
 - [x] ETL consolidado con funciones reutilizables en `src/data.py`
 - [x] Feature engineering geoespacial (distancias haversine)
-- [ ] Modelo XGBoost de lead scoring + SHAP
+- [x] Modelo XGBoost de lead scoring + SHAP
 - [ ] Segmentación de sellers con PCA + K-Means
 - [ ] Migración de queries clave a BigQuery
 - [ ] Dashboard Streamlit deployado en cloud
