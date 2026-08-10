@@ -85,7 +85,7 @@ with col_right:
     st.markdown(
         """
 **🎯 Lead Scoring** — XGBoost clasificando qué MQLs conviene perseguir
-(AUC 0.719). Incluye un simulador interactivo de leads.
+(AUC 0.718). Incluye un simulador interactivo de leads.
 
 **🧩 Segmentación de Sellers** — PCA + K-Means sobre comportamiento de
 vendedores (4 clusters: en riesgo, pequeños y confiables, power sellers,
