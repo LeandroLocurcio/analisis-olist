@@ -24,12 +24,13 @@ kaggle>=1.6.0
 jupyter>=1.0.0
 ipykernel>=6.29.0
 
-# Dashboard (para la fase final)
+# Dashboard
 streamlit>=1.32.0
 
-# Cloud (para la fase final, opcional)
+# Cloud (dashboard geoespacial consulta BigQuery en vivo)
 google-cloud-bigquery>=3.19.0
 pandas-gbq>=0.22.0
+db-dtypes>=1.2.0
 
 # Utilidades
 python-dotenv>=1.0.0

@@ -38,13 +38,13 @@ Olist es el marketplace más grande de Brasil. Como cualquier marketplace, su ne
 | **Modelo 1 — Lead Scoring** | **XGBoost** clasificando MQL → seller de alto valor | `notebooks/02_lead_scoring.ipynb` + `models/xgb_lead_scoring.pkl` |
 | **Modelo 2 — Segmentación** | **PCA + K-Means** sobre features de comportamiento de sellers | `notebooks/03_seller_segmentation.ipynb` |
 | Interpretabilidad | SHAP values sobre XGBoost | `reports/figures/shap_*.png` |
-| Dashboard | Streamlit deployado en cloud | Link público (próximamente) |
+| Dashboard | Streamlit con 4 páginas (overview, lead scoring, segmentación, geoespacial) | `streamlit_app.py` + `pages/` (deploy a cloud pendiente) |
 
 ---
 
 ## Resultados clave
 
-> _Sección completa con los notebooks 01, 02 y 03, más las queries migradas a BigQuery (`sql/`). Falta el dashboard._
+> _Sección completa con los notebooks 01, 02 y 03, las queries migradas a BigQuery (`sql/`) y el dashboard Streamlit. Falta el deploy a un link público._
 
 - [x] AUC del modelo de lead scoring: **0.719** (test; target = conversión de MQL a seller)
 - [x] Número óptimo de clusters de sellers: **K=4** — en riesgo (11%, review 1.93), pequeños y confiables (39%), power sellers (30%), nicho premium (19%)
@@ -68,6 +68,8 @@ analisis-olist/
 │   └── figures/           # PNGs para el README y para presentaciones
 ├── models/                # Modelos entrenados serializados (.pkl)
 ├── sql/                   # Queries clave migradas a BigQuery
+├── streamlit_app.py       # Dashboard: home / overview
+├── pages/                 # Dashboard: una página por eje analítico
 ├── requirements.txt
 ├── .gitignore
 └── README.md
@@ -122,8 +124,8 @@ jupyter lab
 - **Visualización:** matplotlib, seaborn, plotly
 - **Geoespacial:** geopandas, shapely, pyproj
 - **Machine Learning:** scikit-learn, XGBoost, SHAP
-- **Dashboard:** Streamlit (fase final)
-- **Cloud:** Google BigQuery (fase final, para queries analíticas contra warehouse)
+- **Dashboard:** Streamlit
+- **Cloud:** Google BigQuery (queries analíticas contra warehouse, consumidas en vivo por el dashboard)
 - **Versionado:** git + GitLab
 
 ---
@@ -137,7 +139,8 @@ jupyter lab
 - [x] Modelo XGBoost de lead scoring + SHAP
 - [x] Segmentación de sellers con PCA + K-Means
 - [x] Migración de queries clave a BigQuery
-- [ ] Dashboard Streamlit deployado en cloud
+- [x] Dashboard Streamlit (overview, lead scoring, segmentación, geoespacial)
+- [ ] Deploy del dashboard a un link público en cloud
 - [ ] Dockerfile para reproducibilidad total (opcional)
 
 ---
