@@ -9,16 +9,12 @@ import plotly.graph_objects as go
 import shap
 import streamlit as st
 from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve
-from sklearn.model_selection import train_test_split
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MODEL_PATH = PROJECT_ROOT / "models" / "xgb_lead_scoring.pkl"
 
+FEATURE_COLS = ["origin", "contact_dayofweek", "lp_freq"]
 DAY_NAMES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-MONTH_NAMES = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
-]
 
 st.set_page_config(page_title="Lead Scoring | Olist Analytics", page_icon="🎯", layout="wide")
 
@@ -29,32 +25,33 @@ def load_model():
 
 
 @st.cache_data
-def load_features() -> tuple[pd.DataFrame, pd.Series]:
-    """Reproduce el feature engineering de notebooks/02_lead_scoring.ipynb."""
+def load_features() -> pd.DataFrame:
+    """Reproduce notebooks/02_lead_scoring.ipynb (secciones 2-4): acota a leads de 2018
+    (antes de esa fecha el dataset no llega a registrar conversiones) y arma las features."""
     mql = pd.read_csv(PROJECT_ROOT / "data" / "olist_marketing_qualified_leads_dataset.csv")
     closed_deals = pd.read_csv(PROJECT_ROOT / "data" / "olist_closed_deals_dataset.csv")
 
     mql = mql.copy()
     mql["converted"] = mql["mql_id"].isin(closed_deals["mql_id"]).astype(int)
-
     mql["first_contact_date"] = pd.to_datetime(mql["first_contact_date"])
+    mql = mql[mql["first_contact_date"] >= "2018-01-01"].copy()
+
     mql["contact_dayofweek"] = mql["first_contact_date"].dt.dayofweek
-    mql["contact_month"] = mql["first_contact_date"].dt.month
     mql["origin"] = mql["origin"].fillna("unknown").astype("category")
 
     landing_page_freq = mql["landing_page_id"].value_counts()
     mql["lp_freq"] = mql["landing_page_id"].map(landing_page_freq)
 
-    feature_cols = ["origin", "contact_dayofweek", "contact_month", "lp_freq"]
-    return mql[feature_cols], mql["converted"]
+    return mql
 
 
 @st.cache_data
-def evaluate_model(_model, X: pd.DataFrame, y: pd.Series):
-    """Mismo split que el notebook (random_state=42) para reproducir las métricas de test."""
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
+def evaluate_model(_model, mql: pd.DataFrame):
+    """Split temporal (train ene-mar / test abr-may 2018), igual que el notebook."""
+    test_mask = mql["first_contact_date"] >= "2018-04-01"
+    X_test = mql.loc[test_mask, FEATURE_COLS]
+    y_test = mql.loc[test_mask, "converted"]
+
     y_proba = _model.predict_proba(X_test)[:, 1]
     y_pred = _model.predict(X_test)
     auc = roc_auc_score(y_test, y_proba)
@@ -70,24 +67,32 @@ def compute_shap(_model, X_test: pd.DataFrame):
 
 
 model = load_model()
-X, y = load_features()
-X_test, y_test, y_proba, auc, fpr, tpr, cm = evaluate_model(model, X, y)
+mql = load_features()
+X_test, y_test, y_proba, auc, fpr, tpr, cm = evaluate_model(model, mql)
+base_rate = mql["converted"].mean()
 
 st.title("🎯 Lead Scoring")
 st.markdown(
-    "Clasificador XGBoost que prioriza los **Marketing Qualified Leads (MQL)** "
-    "según su probabilidad de convertirse en seller. Target: conversión "
-    f"(~{y.mean():.1%} de los {len(y):,} MQLs convierten). "
+    "Clasificador XGBoost que prioriza los **Marketing Qualified Leads (MQL)** según su "
+    "probabilidad de convertirse en seller. Target: conversión "
+    f"(~{base_rate:.1%} de los {len(mql):,} MQLs de 2018 convierten). "
     "Detalle completo en `notebooks/02_lead_scoring.ipynb`."
+)
+st.info(
+    "**Nota metodológica:** la primera versión de este modelo usaba el mes de contacto "
+    "como feature y llegaba a un AUC de 0.718 — pero resultó ser un artefacto de censura "
+    "temporal (el dataset no registra ninguna conversión antes de dic-2017, no estacionalidad "
+    "real). Corregido: se acota a leads de 2018 y se usa un split temporal (train ene-mar, "
+    "test abr-may). El AUC baja a 0.647, pero ahora mide algo real — ver sección 2 del notebook."
 )
 
 st.divider()
 
 st.subheader("Performance del modelo (test set)")
 col1, col2, col3 = st.columns(3)
-col1.metric("AUC-ROC (test)", f"{auc:.3f}")
+col1.metric("AUC-ROC (test, abr-may 2018)", f"{auc:.3f}")
 col2.metric("Filas de test", f"{len(y_test):,}")
-col3.metric("Tasa base de conversión", f"{y_test.mean():.1%}")
+col3.metric("Tasa base de conversión (test)", f"{y_test.mean():.1%}")
 
 col_roc, col_cm = st.columns(2)
 
@@ -128,24 +133,24 @@ shap.summary_plot(shap_values, X_test, show=False)
 st.pyplot(fig_shap)
 plt.close(fig_shap)
 st.caption(
-    "Orden de importancia: `contact_month` > `lp_freq` > `origin` > `contact_dayofweek` — "
-    "la estacionalidad del contacto pesa más que el canal de origen."
+    "Orden de importancia: `lp_freq` > `origin` > `contact_dayofweek` — sin el ruido de "
+    "`contact_month`, la popularidad de la landing page y el canal de origen quedan como las "
+    "señales dominantes."
 )
 
 st.divider()
 
 st.subheader("Simulador: ¿qué tan prometedor es este lead?")
-lp_freq_min = int(X["lp_freq"].min())
-lp_freq_max = int(X["lp_freq"].max())
-lp_freq_median = int(X["lp_freq"].median())
-origin_options = sorted(X["origin"].cat.categories.tolist())
+lp_freq_min = int(mql["lp_freq"].min())
+lp_freq_max = int(mql["lp_freq"].max())
+lp_freq_median = int(mql["lp_freq"].median())
+origin_options = sorted(mql["origin"].cat.categories.tolist())
 
 with st.form("lead_predictor"):
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3 = st.columns(3)
     origin_input = c1.selectbox("Canal de origen", origin_options)
     day_input = c2.selectbox("Día de contacto", DAY_NAMES)
-    month_input = c3.selectbox("Mes de contacto", MONTH_NAMES)
-    lp_freq_input = c4.slider(
+    lp_freq_input = c3.slider(
         "Popularidad de la landing page",
         min_value=lp_freq_min,
         max_value=lp_freq_max,
@@ -160,14 +165,12 @@ with st.form("lead_predictor"):
 if submitted:
     lead_input = pd.DataFrame(
         {
-            "origin": pd.Categorical([origin_input], categories=X["origin"].cat.categories),
+            "origin": pd.Categorical([origin_input], categories=mql["origin"].cat.categories),
             "contact_dayofweek": [DAY_NAMES.index(day_input)],
-            "contact_month": [MONTH_NAMES.index(month_input) + 1],
             "lp_freq": [lp_freq_input],
         }
     )
     proba = model.predict_proba(lead_input)[0, 1]
-    base_rate = y.mean()
 
     st.metric(
         "Probabilidad de conversión",
