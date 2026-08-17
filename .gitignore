@@ -1,9 +1,16 @@
 # === Datos ===
-# Los CSVs son pesados y se bajan con scripts/download_data.py
+# Los CSVs crudos son pesados (~125MB) y se bajan con src/download_data.py.
+# Excepcion: los 2 que usa el dashboard en vivo (pages/1_Lead_Scoring.py) son chicos.
 Datos/
-*.csv
-# Datasets procesados por src/data.py (se regeneran corriendo el ETL)
-data/processed/
+data/*.csv
+!data/olist_marketing_qualified_leads_dataset.csv
+!data/olist_closed_deals_dataset.csv
+
+# Datasets procesados por src/data.py -- versionados porque el dashboard los
+# lee directo y pesan poco (~22MB); se regeneran corriendo el ETL igual.
+data/processed/*
+!data/processed/order_items_full.parquet
+!data/processed/seller_features.parquet
 
 # === Python ===
 __pycache__/
@@ -39,8 +46,10 @@ Thumbs.db
 # === Outputs generados ===
 reports/figures/*.png
 !reports/figures/.gitkeep
+!reports/figures/data_model.png
 models/*.pkl
 !models/.gitkeep
+!models/xgb_lead_scoring.pkl
 
 # === Secrets ===
 .env
