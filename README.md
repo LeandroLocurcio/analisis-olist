@@ -6,6 +6,8 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+🔗 **[Dashboard en vivo](https://qunzuykvqvt5zlgynt6evz.streamlit.app/)**
+
 ---
 
 ## Problema de negocio
@@ -38,13 +40,13 @@ Olist es el marketplace más grande de Brasil. Como cualquier marketplace, su ne
 | **Modelo 1 — Lead Scoring** | **XGBoost** clasificando MQL → seller de alto valor | `notebooks/02_lead_scoring.ipynb` + `models/xgb_lead_scoring.pkl` |
 | **Modelo 2 — Segmentación** | **PCA + K-Means** sobre features de comportamiento de sellers | `notebooks/03_seller_segmentation.ipynb` |
 | Interpretabilidad | SHAP values sobre XGBoost | `reports/figures/shap_*.png` |
-| Dashboard | Streamlit con 4 páginas (overview, lead scoring, segmentación, geoespacial) | `streamlit_app.py` + `pages/` (deploy a cloud pendiente) |
+| Dashboard | Streamlit con 4 páginas (overview, lead scoring, segmentación, geoespacial) | `streamlit_app.py` + `pages/`, deployado en [Streamlit Cloud](https://qunzuykvqvt5zlgynt6evz.streamlit.app/) |
 
 ---
 
 ## Resultados clave
 
-> _Sección completa con los notebooks 01, 02 y 03, las queries migradas a BigQuery (`sql/`) y el dashboard Streamlit. Falta el deploy a un link público._
+> _Sección completa con los notebooks 01, 02 y 03, las queries migradas a BigQuery (`sql/`) y el [dashboard Streamlit](https://qunzuykvqvt5zlgynt6evz.streamlit.app/) deployado._
 
 - [x] AUC del modelo de lead scoring: **0.647** (test, leads de 2018, split temporal train ene-mar/test abr-may; hiperparámetros elegidos por CV sobre train) — empatado con una regresión logística simple (0.670)
 - [x] Impacto de negocio (lead scoring): contactar al 20% de los leads con mayor score captura **~36% de las conversiones totales**, ~2x más eficiente que marcar sin priorizar
@@ -142,7 +144,7 @@ jupyter lab
 - [x] Segmentación de sellers con PCA + K-Means
 - [x] Migración de queries clave a BigQuery
 - [x] Dashboard Streamlit (overview, lead scoring, segmentación, geoespacial)
-- [ ] Deploy del dashboard a un link público en cloud
+- [x] Deploy del dashboard a un link público en cloud — [qunzuykvqvt5zlgynt6evz.streamlit.app](https://qunzuykvqvt5zlgynt6evz.streamlit.app/)
 - [ ] Dockerfile para reproducibilidad total (opcional)
 
 ---
