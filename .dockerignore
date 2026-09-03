@@ -1,0 +1,13 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.ipynb_checkpoints
+notebooks/
+reports/
+
+# Los CSVs crudos grandes no los usa el dashboard -- solo el ETL/notebooks
+data/*.csv
+!data/olist_marketing_qualified_leads_dataset.csv
+!data/olist_closed_deals_dataset.csv

@@ -75,6 +75,8 @@ analisis-olist/
 ├── streamlit_app.py       # Dashboard: home / overview
 ├── pages/                 # Dashboard: una página por eje analítico
 ├── requirements.txt
+├── Dockerfile             # Corre el dashboard sin instalar nada localmente
+├── .dockerignore
 ├── .gitignore
 └── README.md
 ```
@@ -119,6 +121,21 @@ python src/download_data.py
 jupyter lab
 ```
 
+### Alternativa: correr el dashboard con Docker
+
+Los pasos de arriba arman el entorno completo para correr notebooks y el ETL (necesitan credenciales de Kaggle y los CSVs crudos). Si solo querés levantar el **dashboard** sin instalar nada localmente, alcanza con Docker — el dashboard lee datos ya procesados y versionados en el repo (`data/processed/*.parquet`, `models/*.pkl`), no necesita Kaggle:
+
+```bash
+docker build -t olist-dashboard .
+docker run -p 8501:8501 olist-dashboard
+```
+
+Abrí `http://localhost:8501`. La página Geoespacial va a fallar en el contenedor por defecto: a diferencia de correrlo directo con `streamlit run`, el contenedor no ve tus credenciales de `gcloud` del host. Para que funcione, montá tu carpeta de credenciales como volumen de solo lectura:
+
+```bash
+docker run -p 8501:8501 -v ~/.config/gcloud:/root/.config/gcloud:ro olist-dashboard
+```
+
 ---
 
 ## Stack técnico
@@ -130,7 +147,8 @@ jupyter lab
 - **Machine Learning:** scikit-learn, XGBoost, SHAP
 - **Dashboard:** Streamlit
 - **Cloud:** Google BigQuery (queries analíticas contra warehouse, consumidas en vivo por el dashboard)
-- **Versionado:** git + GitLab
+- **Deploy:** Streamlit Community Cloud, Docker
+- **Versionado:** git + GitLab (mirror push a GitHub para el deploy)
 
 ---
 
@@ -145,7 +163,7 @@ jupyter lab
 - [x] Migración de queries clave a BigQuery
 - [x] Dashboard Streamlit (overview, lead scoring, segmentación, geoespacial)
 - [x] Deploy del dashboard a un link público en cloud — [qunzuykvqvt5zlgynt6evz.streamlit.app](https://qunzuykvqvt5zlgynt6evz.streamlit.app/)
-- [ ] Dockerfile para reproducibilidad total (opcional)
+- [x] Dockerfile para correr el dashboard sin instalar nada localmente
 
 ---
 
