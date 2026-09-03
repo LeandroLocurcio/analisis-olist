@@ -10,8 +10,10 @@ from pathlib import Path
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from google.cloud import bigquery
 from google.api_core.exceptions import GoogleAPIError
+from google.auth.exceptions import DefaultCredentialsError
+from google.cloud import bigquery
+from google.oauth2 import service_account
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SQL_DIR = PROJECT_ROOT / "sql"
@@ -20,10 +22,21 @@ BQ_PROJECT = "analisis-olist"
 st.set_page_config(page_title="Geoespacial | Olist Analytics", page_icon="🌎", layout="wide")
 
 
+@st.cache_resource
+def get_bq_client() -> bigquery.Client:
+    """En Streamlit Cloud usa el service account de st.secrets; en local cae a
+    las Application Default Credentials (`gcloud auth application-default login`)."""
+    if "gcp_service_account" in st.secrets:
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"]
+        )
+        return bigquery.Client(project=BQ_PROJECT, credentials=credentials)
+    return bigquery.Client(project=BQ_PROJECT)
+
+
 @st.cache_data(ttl=3600)
 def run_query(sql: str) -> pd.DataFrame:
-    client = bigquery.Client(project=BQ_PROJECT)
-    return client.query(sql).to_dataframe()
+    return get_bq_client().query(sql).to_dataframe()
 
 
 def read_sql(filename: str) -> str:
@@ -117,9 +130,11 @@ try:
             st.code(sql_corr, language="sql")
             st.code(sql_bins, language="sql")
 
-except GoogleAPIError as e:
+except (GoogleAPIError, DefaultCredentialsError) as e:
     st.error(
-        "No se pudo consultar BigQuery. Verificá que `gcloud auth application-default login` "
-        f"esté configurado y que el proyecto `{BQ_PROJECT}` tenga el dataset `olist_dw`.\n\n"
+        "No se pudo consultar BigQuery. En local, verificá que `gcloud auth "
+        "application-default login` esté configurado; en Streamlit Cloud, que el secret "
+        f"`gcp_service_account` esté cargado. Además, que el proyecto `{BQ_PROJECT}` tenga "
+        "el dataset `olist_dw`.\n\n"
         f"Detalle: {e}"
     )
