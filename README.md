@@ -35,7 +35,7 @@ Olist es el marketplace más grande de Brasil. Como cualquier marketplace, su ne
 | Fase | Técnica | Entregable |
 |------|---------|------------|
 | ETL | Consolidación de 9 tablas relacionales, limpieza, traducción de categorías PT→ES | Dataset unificado en `data/processed/` |
-| EDA | Estadística descriptiva, distribuciones, correlaciones, ECDF | `notebooks/01_eda.ipynb` |
+| EDA | Estadística descriptiva, distribuciones, correlaciones, ECDF | `notebooks/EDA_1.ipynb` |
 | Feature engineering geoespacial | Distancias Haversine entre zip codes seller-customer | Feature `distance_km` |
 | **Modelo 1 — Lead Scoring** | **XGBoost** clasificando MQL → seller de alto valor | `notebooks/02_lead_scoring.ipynb` + `models/xgb_lead_scoring.pkl` |
 | **Modelo 2 — Segmentación** | **PCA + K-Means** sobre features de comportamiento de sellers | `notebooks/03_seller_segmentation.ipynb` |
@@ -63,15 +63,19 @@ Olist es el marketplace más grande de Brasil. Como cualquier marketplace, su ne
 ```
 analisis-olist/
 ├── data/                  # CSVs crudos (ignorados por git, se bajan con el script)
+│   └── processed/         # Parquets generados por src/data.py
 ├── notebooks/             # Jupyter notebooks narrados
-│   └── 01_eda.ipynb
+│   ├── EDA_1.ipynb
+│   ├── 02_lead_scoring.ipynb
+│   └── 03_seller_segmentation.ipynb
 ├── src/                   # Código Python reutilizable
 │   ├── __init__.py
+│   ├── data.py            # ETL: carga, joins, features geoespaciales
 │   └── download_data.py
 ├── reports/
 │   └── figures/           # PNGs para el README y para presentaciones
 ├── models/                # Modelos entrenados serializados (.pkl)
-├── sql/                   # Queries clave migradas a BigQuery
+├── sql/                   # Queries de distancia vs. flete/review score, migradas a BigQuery
 ├── streamlit_app.py       # Dashboard: home / overview
 ├── pages/                 # Dashboard: una página por eje analítico
 ├── requirements.txt
